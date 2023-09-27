@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { SignupDTO } from '../auth/dtos';
+import { SignUpDTO } from '../auth/dtos';
 
 @Injectable()
 export class UserService {
@@ -11,22 +11,30 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  findAll(): Promise<User[]> {
+  findAll() {
     return this.usersRepository.find();
   }
 
-  findOne(id: number): Promise<User | null> {
+  findOne(id: number) {
     return this.usersRepository.findOneBy({ id });
   }
 
-  async createOne(signupDTO: SignupDTO) {
-    let user: User = this.usersRepository.create({ ...signupDTO });
+  async createOne(signUpDTO: SignUpDTO) {
+    let user = this.usersRepository.create({ ...signUpDTO });
 
     try {
       user = await this.usersRepository.save(user);
     } catch (error: any) {
-      return { error: error.number, message: error.originalError.message };
+      throw new BadRequestException({
+        error: error.number,
+        message:
+          error.number == 2627
+            ? 'This email has been used'
+            : error.originalError.message,
+      });
     }
+
+    delete user.password;
     return user;
   }
 }
