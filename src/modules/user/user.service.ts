@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { SignUpDTO } from '../auth/dtos';
-import { ErrorInterface } from 'src/utils/interfaces';
+import { getError } from 'src/utils';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class UserService {
@@ -20,21 +25,25 @@ export class UserService {
     return this.usersRepository.findOneBy({ id });
   }
 
+  findOneByEmail(email: string) {
+    return this.usersRepository.findOneBy({ email });
+  }
+
   async createOne(signUpDTO: SignUpDTO) {
+    try {
+      signUpDTO.password = await argon2.hash(signUpDTO.password);
+    } catch (error) {
+      throw new InternalServerErrorException(getError(error));
+    }
+
     let user = this.usersRepository.create({ ...signUpDTO });
 
     try {
       user = await this.usersRepository.save(user);
     } catch (error: any) {
-      const mappedError: ErrorInterface = {
-        error: error.number,
-        message:
-          error.number == 2627
-            ? 'This email has been used'
-            : error.originalError.message,
-      };
-
-      throw new BadRequestException(mappedError);
+      throw new BadRequestException(
+        getError(error, [{ error: 2627, message: 'This email has been used' }]),
+      );
     }
 
     delete user.password;
