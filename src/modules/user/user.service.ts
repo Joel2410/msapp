@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { SignUpDTO } from '../auth/dtos';
+import { ErrorInterface } from 'src/utils/interfaces';
 
 @Injectable()
 export class UserService {
@@ -25,13 +26,15 @@ export class UserService {
     try {
       user = await this.usersRepository.save(user);
     } catch (error: any) {
-      throw new BadRequestException({
+      const mappedError: ErrorInterface = {
         error: error.number,
         message:
           error.number == 2627
             ? 'This email has been used'
             : error.originalError.message,
-      });
+      };
+
+      throw new BadRequestException(mappedError);
     }
 
     delete user.password;
