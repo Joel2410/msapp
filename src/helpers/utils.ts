@@ -1,5 +1,4 @@
-import { SetMetadata } from '@nestjs/common';
-import { ErrorInterface } from './interfaces';
+import { ErrorInterface } from 'src/interfaces';
 
 export const getError = (error: any, customMessages: ErrorInterface[] = []) => {
   let customMessage = customMessages.find((cm) => cm.error == error.number);
@@ -16,6 +15,3 @@ export const getError = (error: any, customMessages: ErrorInterface[] = []) => {
 
   return customMessage;
 };
-
-export const IS_PUBLIC_KEY = 'isPublic';
-export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);

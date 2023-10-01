@@ -8,7 +8,7 @@ import { UserService } from '../user/user.service';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../user/user.entity';
-import { AccessToken } from 'src/utils/interfaces/access-token.interface';
+import { AccessToken } from 'src/interfaces';
 
 @Injectable()
 export class AuthService {
