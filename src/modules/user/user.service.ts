@@ -17,16 +17,33 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  findAll() {
-    return this.usersRepository.find();
+  async findAll(secret = false) {
+    const users = await this.usersRepository.find();
+    if (secret) {
+      return users.map((user) => this.removeSecretProperties(user));
+    }
+    return users;
   }
 
-  findOne(id: number) {
-    return this.usersRepository.findOneBy({ id });
+  async findOne(id: number, secret = false) {
+    let user = await this.usersRepository.findOneBy({ id });
+    if (secret) {
+      user = this.removeSecretProperties(user);
+    }
+    return user;
   }
 
-  findOneByEmail(email: string) {
-    return this.usersRepository.findOneBy({ email });
+  async findOneByEmail(email: string, secret = false) {
+    let user = await this.usersRepository.findOneBy({ email });
+    if (secret) {
+      user = this.removeSecretProperties(user);
+    }
+    return user;
+  }
+
+  removeSecretProperties(user: User): User {
+    delete user.password;
+    return user;
   }
 
   async createOne(signUpDTO: SignUpDTO) {
@@ -46,7 +63,8 @@ export class UserService {
       );
     }
 
-    delete user.password;
+    user = this.removeSecretProperties(user);
+
     return user;
   }
 }
