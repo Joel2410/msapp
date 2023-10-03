@@ -4,6 +4,7 @@ import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 export const databaseConfig: TypeOrmModuleAsyncOptions = {
   inject: [ConfigService],
   useFactory: (configService: ConfigService) => ({
+    name: 'principalConnection',
     type: 'mssql',
     host: configService.get('DB_HOST'),
     port: +configService.get('DB_PORT'),
