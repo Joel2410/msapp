@@ -17,7 +17,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signIn(signInDTO: SignInDTO) {
+  async signIn(signInDTO: SignInDTO, tenantId: string) {
     const user = await this.userService.findOneByEmail(signInDTO.email);
     if (!user)
       throw new BadRequestException({ message: 'Invalid credentials' });
@@ -29,16 +29,16 @@ export class AuthService {
       throw new InternalServerErrorException(error);
     }
 
-    return await this.getAccessToken(user);
+    return await this.getAccessToken(user, tenantId);
   }
 
-  async signUp(signUpDTO: SignUpDTO) {
+  async signUp(signUpDTO: SignUpDTO, tenantId: string) {
     const user = await this.userService.createOne(signUpDTO);
-    return await this.getAccessToken(user);
+    return await this.getAccessToken(user, tenantId);
   }
 
-  async getAccessToken(user: User): Promise<AccessToken> {
-    const payload = { sub: user.id, username: user.email };
+  async getAccessToken(user: User, tenantId: string): Promise<AccessToken> {
+    const payload = { userId: user.id, email: user.email, tenantId };
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };

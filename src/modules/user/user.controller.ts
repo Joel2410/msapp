@@ -1,35 +1,27 @@
-import { Controller, Get, Request } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Request } from '@nestjs/common';
 import { UserService } from './user.service';
-import { DataSource } from 'typeorm';
-import { Public } from 'src/decorators';
+import { TenantService } from '../tenant/tenant.service';
 import { Product } from 'src/database/entities';
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private tenantService: TenantService,
+  ) {}
 
   @Get('profile')
-  getProfile(@Request() req: { user: { sub: number } }) {
-    return this.userService.findOne(req.user.sub, true);
+  getProfile(@Request() req: { user: { userId: number } }) {
+    return this.userService.findOne(req.user.userId, true);
   }
 
-  @Public()
   @Get('products')
-  async getProducts() {
-    const AppDataSource = new DataSource({
-      name: 'prueba-msapp',
-      type: 'mssql',
-      host: 'JJOEL2410',
-      port: 2410,
-      username: 'sa',
-      password: 'jjstudios12',
-      database: 'prueba-msapp',
-      entities: [Product],
-      synchronize: true,
-      options: { trustServerCertificate: true },
-    });
+  getProducts(@Request() req: any) {
+    const tenantId = req.tenantId;
+    const dataSource = this.tenantService.findDataSource(tenantId);
 
-    const dataSource = await AppDataSource.initialize();
+    if (!dataSource)
+      throw new BadRequestException({ message: `Unknown tenant: ${tenantId}` });
 
     const productRepository = dataSource.getRepository(Product);
 
