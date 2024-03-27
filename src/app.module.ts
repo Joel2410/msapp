@@ -5,6 +5,7 @@ import { databaseConfig, validationSchema } from './config';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { TenantModule } from './modules/tenant/tenant.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { TenantModule } from './modules/tenant/tenant.module';
     AuthModule,
     UserModule,
     TenantModule,
+    ProductModule,
   ],
 })
 export class AppModule {}

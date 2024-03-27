@@ -30,8 +30,7 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-    const tenantId = getTenantId(request);
-
+    
     if (!token) {
       throw new UnauthorizedException();
     }
@@ -45,6 +44,8 @@ export class AuthGuard implements CanActivate {
       
       //TODO: Validar que el tenant pertenezca al usuario
 
+      const tenantId = request?.headers?.host.split('.')[0];
+
       if (!payload.tenantId) payload.tenantId = DEFAULT_TENANT;
 
       if (tenantId != payload.tenantId) {
@@ -55,6 +56,7 @@ export class AuthGuard implements CanActivate {
       }
 
       request['user'] = payload;
+      request['tenantId'] = tenantId;
     } catch {
       throw new UnauthorizedException();
     }

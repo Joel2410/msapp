@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectionPool } from 'mssql';
 import {
@@ -97,13 +97,25 @@ export class TenantService {
     this.dataSources.push(await appDataSource.initialize());
   }
 
-  findDataSource(name: string) {
+  findDataSource(tenantId: string) {
     const dataSource = this.dataSources.find(
       (dataSource) =>
         (dataSource.options.database as string).toLowerCase() ===
-        name.toLowerCase(),
+        tenantId.toLowerCase(),
     );
+
+    if (!dataSource?.isInitialized) {
+      throw new BadRequestException({
+        message: `Tenant: ${tenantId} is not available`,
+      });
+    }
+
     return dataSource;
+  }
+
+  getRepository(tenantId: string, model: EntityTarget<ObjectLiteral>) {
+    const dataSource = this.findDataSource(tenantId);
+    return dataSource.getRepository(model);
   }
 
   shutDown() {
