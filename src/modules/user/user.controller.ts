@@ -21,8 +21,10 @@ export class UserController {
   getProducts(@CurrentTenatId() tenantId: string) {
     const dataSource = this.tenantService.findDataSource(tenantId);
 
-    if (!dataSource)
-      throw new BadRequestException({ message: `Unknown tenant: ${tenantId}` });
+    if (!dataSource?.isInitialized)
+      throw new BadRequestException({
+        message: `Tenant: ${tenantId} is not available`,
+      });
 
     const productRepository = dataSource.getRepository(Product);
 
