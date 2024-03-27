@@ -1,10 +1,9 @@
-import { IsEmail, MinLength, MaxLength } from 'class-validator';
+import { IsEmail, Length } from 'class-validator';
 
 export class SignInDTO {
   @IsEmail()
   email: string;
 
-  @MinLength(4)
-  @MaxLength(16)
+  @Length(4, 16)
   password: string;
 }

@@ -3,11 +3,12 @@ import {
   ExecutionContext,
   Injectable,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { IS_PUBLIC_KEY } from 'src/helpers';
+import { DEFAULT_TENANT, IS_PUBLIC_KEY, getTenantId } from '../helpers';
 import { JWT_SECRET } from 'src/config';
 
 @Injectable()
@@ -29,6 +30,7 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+    const tenantId = getTenantId(request);
 
     if (!token) {
       throw new UnauthorizedException();
@@ -39,7 +41,16 @@ export class AuthGuard implements CanActivate {
         secret: JWT_SECRET,
       });
 
-      if (request.tenantId != payload.tenantId) {
+      //TODO: Crear guard para validar el tenant similar a IS PUBLIC
+      
+      //TODO: Validar que el tenant pertenezca al usuario
+
+      if (!payload.tenantId) payload.tenantId = DEFAULT_TENANT;
+
+      if (tenantId != payload.tenantId) {
+        Logger.error(
+          `Error: host tenant: ${tenantId}; user tenant: ${payload.tenantId}`,
+        );
         throw new UnauthorizedException();
       }
 

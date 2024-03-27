@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Post, Request } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { TenantService } from './tenant.service';
-import { CreateDTO } from './dtos';
+import { CreateTenantDTO } from './dtos';
+import { UserDTO } from '../user/dtos';
+import { CurrentUser } from '../../decorators';
 
 @Controller('tenant')
 export class TenantController {
@@ -12,10 +14,7 @@ export class TenantController {
   }
 
   @Post('create')
-  signUp(
-    @Request() req: { user: { userId: number } },
-    @Body() createDTO: CreateDTO,
-  ) {
-    return this.tenantService.create(req.user.userId, createDTO.tenantId);
+  signUp(@CurrentUser() user: UserDTO, @Body() createDTO: CreateTenantDTO) {
+    return this.tenantService.create(user.userId, createDTO.tenantId);
   }
 }
