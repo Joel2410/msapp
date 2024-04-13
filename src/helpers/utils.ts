@@ -1,5 +1,4 @@
-import { ErrorInterface } from 'src/interfaces';
-import { Request } from 'express';
+import { ErrorInterface } from '@interfaces';
 
 export const getError = (error: any, customMessages: ErrorInterface[] = []) => {
   let customMessage = customMessages.find((cm) => cm.error == error.number);

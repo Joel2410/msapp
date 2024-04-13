@@ -22,6 +22,7 @@
     "paths": {
       "@helpers": ["src/helpers"],
       "@config": ["src/config"],
+      "@interfaces": ["src/interfaces"],
       "@entities": ["src/database/entities"]
     }
   }
