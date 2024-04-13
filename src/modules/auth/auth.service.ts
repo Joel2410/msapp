@@ -7,7 +7,7 @@ import { SignInDTO, SignUpDTO } from './dtos';
 import { UserService } from '../user/user.service';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
-import { AccessToken } from 'src/interfaces';
+import { AccessToken, AccessTokenContent } from 'src/interfaces';
 import { User } from 'src/database/entities';
 
 @Injectable()
@@ -16,7 +16,6 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
-
 
   /**
    * The function `signIn` in TypeScript handles user authentication by verifying credentials and
@@ -75,7 +74,11 @@ export class AuthService {
    * `payload` using the `jwtService`.
    */
   async getAccessToken(user: User, tenantId: string): Promise<AccessToken> {
-    const payload = { userId: user.id, email: user.email, tenantId };
+    const payload: AccessTokenContent = {
+      userId: user.id,
+      email: user.email,
+      tenantId,
+    };
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };
