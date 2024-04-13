@@ -8,7 +8,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { DEFAULT_TENANT, IS_PUBLIC_KEY, getTenantId } from '../helpers';
+import { DEFAULT_TENANT, IS_PUBLIC_KEY } from '../helpers';
 import { JWT_SECRET } from 'src/config';
 
 @Injectable()

@@ -16,8 +16,3 @@ export const getError = (error: any, customMessages: ErrorInterface[] = []) => {
 
   return customMessage;
 };
-
-export const getTenantId = (request: Request): string => {
-  const { headers } = request;
-  return headers?.host.split('.')[0];
-};
