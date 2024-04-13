@@ -7,8 +7,8 @@ import {
 import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { ConnectionPool } from 'mssql';
 import { Product, Tenant } from '@entities';
-import { DB_MASTER, DB_TYPE, getError } from 'src/helpers';
-import { DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME } from 'src/config';
+import { DB_MASTER, DB_TYPE, getError } from '@helpers';
+import { DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME } from '@config';
 
 @Injectable()
 export class TenantService {
