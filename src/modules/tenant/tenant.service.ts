@@ -1,12 +1,12 @@
-import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ConnectionPool } from 'mssql';
 import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Product, Tenant } from 'src/database/entities';
+import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
+import { ConnectionPool } from 'mssql';
+import { Product, Tenant } from '@entities';
 import { DB_MASTER, DB_TYPE, getError } from 'src/helpers';
 import { DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME } from 'src/config';
 

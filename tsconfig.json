@@ -20,7 +20,8 @@
     "strict": true,
     "noImplicitReturns": true,
     "paths": {
-      "@helpers": ["src/helpers"]
+      "@helpers": ["src/helpers"],
+      "@entities": ["src/database/entities"]
     }
   }
 }
