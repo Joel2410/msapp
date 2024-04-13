@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
-import { DB_TYPE } from 'src/helpers';
+import { DB_TYPE } from '@helpers';
 
 export let DB_HOST = '';
 export let DB_PORT = 1433;
