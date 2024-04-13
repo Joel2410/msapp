@@ -137,4 +137,16 @@ export class TenantService {
     await dataSource.destroy();
     this.dataSources.splice(index, 1);
   }
+
+  async isUserTenantValid(tenantId: string, userId: number): Promise<boolean> {
+    //TODO: este metodo debe de cambiar por que hay que crear una table de users vs tenants
+    const tenant = this.tenantsRepository.findOne({
+      where: {
+        id: tenantId,
+        userId,
+      },
+    });
+
+    return !!tenant;
+  }
 }
