@@ -6,7 +6,7 @@ import { ProductService } from './product.service';
 export class ProductController {
   constructor(private productService: ProductService) {}
 
-  @Get('products')
+  @Get()
   getProducts(@CurrentTenantId() tenantId: string) {
     return this.productService.getProducts(tenantId);
   }

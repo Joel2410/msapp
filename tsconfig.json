@@ -23,6 +23,7 @@
       "@helpers": ["src/helpers"],
       "@config": ["src/config"],
       "@interfaces": ["src/interfaces"],
+      "@enums": ["src/enums"],
       "@entities": ["src/database/entities"]
     }
   }

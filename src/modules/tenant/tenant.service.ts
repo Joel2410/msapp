@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { ConnectionPool } from 'mssql';
-import { Product, Tenant } from '@entities';
-import { DB_MASTER, DB_TYPE, getError } from '@helpers';
+import { Product, Tenant, UserToTenant } from '@entities';
+import { DB_MASTER, DB_TYPE } from '@config';
 import { DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME } from '@config';
 
 @Injectable()
@@ -17,6 +17,8 @@ export class TenantService {
   constructor(
     @InjectRepository(Tenant)
     private tenantsRepository: Repository<Tenant>,
+    @InjectRepository(UserToTenant)
+    private userTotenantsRepository: Repository<UserToTenant>,
   ) {
     this.find()
       .then((tenants) => {
@@ -31,12 +33,12 @@ export class TenantService {
     return this.tenantsRepository.find();
   }
 
-  findOne(id: string) {
+  findOneById(id: string) {
     return this.tenantsRepository.findOneBy({ id });
   }
 
   async create(userId: number, tenantId: string) {
-    let tenant = await this.findOne(tenantId);
+    let tenant = await this.findOneById(tenantId);
 
     if (tenant) {
       throw new BadRequestException({ message: 'This tenant has been used' });
@@ -44,18 +46,20 @@ export class TenantService {
 
     tenant = this.tenantsRepository.create({
       id: tenantId,
-      userId,
       isActive: true,
+    });
+
+    let userToTenant = this.userTotenantsRepository.create({
+      tenantId,
+      userId,
     });
 
     try {
       tenant = await this.tenantsRepository.save(tenant);
-    } catch (error: any) {
-      throw new BadRequestException(
-        getError(error, [
-          { error: 2627, message: 'This tenant has been used' },
-        ]),
-      );
+      userToTenant = await this.userTotenantsRepository.save(userToTenant);
+    } catch (error) {
+      //TODO manejar mensajes de errores
+      throw error;
     }
 
     try {
@@ -139,14 +143,17 @@ export class TenantService {
   }
 
   async isUserTenantValid(tenantId: string, userId: number): Promise<boolean> {
-    //TODO: este metodo debe de cambiar por que hay que crear una table de users vs tenants
-    const tenant = this.tenantsRepository.findOne({
-      where: {
-        id: tenantId,
-        userId,
-      },
+    const tenant = await this.findOneById(tenantId);
+
+    if (!tenant) {
+      return false;
+    }
+
+    const userToTenant = await this.userTotenantsRepository.findOneBy({
+      tenantId,
+      userId,
     });
 
-    return !!tenant;
+    return !!userToTenant;
   }
 }

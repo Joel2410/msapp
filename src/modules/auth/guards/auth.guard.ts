@@ -9,10 +9,10 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { DEFAULT_TENANT, IS_PUBLIC_KEY } from '@helpers';
-import { JWT_SECRET } from '../config';
-import { TenantService } from '../modules/tenant/tenant.service';
-import { AccessTokenContent } from 'src/interfaces';
+import { DEFAULT_TENANT, IS_PUBLIC_KEY, JWT_SECRET } from '@config';
+import { AccessTokenContent } from '../interfaces';
+import { TenantService } from '../../../modules/tenant/tenant.service';
+import { getTenantIdFromRequest } from '@helpers';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -48,7 +48,7 @@ export class AuthGuard implements CanActivate {
       );
 
       //TODO: Crear guard para validar el tenant similar a IS PUBLIC
-      const tenantId = request?.headers?.host.split('.')[0] || DEFAULT_TENANT;
+      const tenantId = getTenantIdFromRequest(request);
 
       // Validar que el tenant exista y pertenezca al usuario
       if (!this.tenantService.isUserTenantValid(tenantId, payload.userId)) {
@@ -68,7 +68,6 @@ export class AuthGuard implements CanActivate {
       }
 
       request['user'] = payload;
-      request['tenantId'] = tenantId;
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
