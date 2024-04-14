@@ -1,7 +1,20 @@
-import { Controller, HttpCode, HttpStatus, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Body,
+  Put,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInDTO, SignUpDTO } from './dtos';
-import { CurrentTenantId, Public } from '../../decorators';
+import { SignInDTO, SignUpDTO, SwitchTenantDTO } from './dtos';
+import {
+  CurrentTenantId,
+  CurrentUser,
+  Public,
+  PublicTenant,
+} from '@decorators';
+import { UserDTO } from '../user/dtos';
 
 @Controller('auth')
 export class AuthController {
@@ -18,5 +31,14 @@ export class AuthController {
   @Post('signUp')
   signUp(@Body() signUpDTO: SignUpDTO, @CurrentTenantId() tenantId: string) {
     return this.authService.signUp(signUpDTO, tenantId);
+  }
+
+  @PublicTenant()
+  @Put('switchTenant')
+  switchTenant(
+    @CurrentUser() userDTO: UserDTO,
+    @Body() switchTenantDTO: SwitchTenantDTO,
+  ) {
+    return this.authService.switchTenant(userDTO, switchTenantDTO.tenantId);
   }
 }

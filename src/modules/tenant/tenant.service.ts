@@ -3,12 +3,19 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { ConnectionPool } from 'mssql';
 import { Product, Tenant, UserToTenant } from '@entities';
-import { DB_MASTER, DB_TYPE } from '@config';
-import { DB_HOST, DB_PASSWORD, DB_PORT, DB_USERNAME } from '@config';
+import {
+  DB_HOST,
+  DB_PASSWORD,
+  DB_PORT,
+  DB_USERNAME,
+  DB_MASTER,
+  DB_TYPE,
+} from '@config';
 
 @Injectable()
 export class TenantService {
@@ -122,7 +129,7 @@ export class TenantService {
     return dataSource.getRepository(model);
   }
 
-  shutDown() {
+  async shutDown() {
     this.dataSources.forEach(async (dataSource) => {
       await dataSource.destroy();
     });
@@ -142,11 +149,11 @@ export class TenantService {
     this.dataSources.splice(index, 1);
   }
 
-  async isUserTenantValid(tenantId: string, userId: number): Promise<boolean> {
+  async isUserTenantValid(tenantId: string, userId: number): Promise<void> {
     const tenant = await this.findOneById(tenantId);
 
     if (!tenant) {
-      return false;
+      throw new UnauthorizedException(`Tenant: ${tenantId} does not exists`);
     }
 
     const userToTenant = await this.userTotenantsRepository.findOneBy({
@@ -154,6 +161,10 @@ export class TenantService {
       userId,
     });
 
-    return !!userToTenant;
+    if (!userToTenant) {
+      throw new UnauthorizedException(
+        `User: ${userId} does not have the tenant: ${tenantId}`,
+      );
+    }
   }
 }

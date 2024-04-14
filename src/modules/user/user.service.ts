@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { SignUpDTO } from '../auth/dtos';
 import { getError } from 'src/helpers';
 import * as argon2 from 'argon2';
-import { Product, User } from 'src/database/entities';
+import { User } from '@entities';
 
 @Injectable()
 export class UserService {
@@ -17,25 +17,25 @@ export class UserService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async findAll(secret = false) {
+  async findAll(showSecrets?: boolean) {
     const users = await this.usersRepository.find();
-    if (secret) {
+    if (!showSecrets) {
       return users.map((user) => this.removeSecretProperties(user));
     }
     return users;
   }
 
-  async findOne(id: number, secret = false) {
+  async findOneById(id: number, showSecrets?: boolean) {
     let user = await this.usersRepository.findOneBy({ id });
-    if (secret) {
+    if (!showSecrets) {
       user = this.removeSecretProperties(user);
     }
     return user;
   }
 
-  async findOneByEmail(email: string, secret = false) {
+  async findOneByEmail(email: string, showSecrets?: boolean) {
     let user = await this.usersRepository.findOneBy({ email });
-    if (secret) {
+    if (!showSecrets) {
       user = this.removeSecretProperties(user);
     }
     return user;

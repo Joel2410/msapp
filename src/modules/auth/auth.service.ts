@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { SignInDTO, SignUpDTO } from './dtos';
 import { UserService } from '../user/user.service';
@@ -9,12 +10,15 @@ import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { AccessToken, AccessTokenContent } from './interfaces';
 import { User } from '@entities';
+import { UserDTO } from '../user/dtos';
+import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private tenantService: TenantService,
   ) {}
 
   /**
@@ -82,5 +86,23 @@ export class AuthService {
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };
+  }
+
+  /**
+   * The `switchTenant` function switches the tenant for a user and returns an access token.
+   * @param {UserDTO} userDTO - UserDTO object containing user information, such as userId and email
+   * @param {string} tenantId - The `tenantId` parameter is a string that represents the unique
+   * identifier of the tenant for which the user is switching to.
+   * @returns The `switchTenant` function returns a Promise that resolves to an `AccessToken`.
+   */
+  async switchTenant(userDTO: UserDTO, tenantId: string): Promise<AccessToken> {
+    const user = await this.userService.findOneById(userDTO.userId);
+    if (!user) {
+      throw new UnauthorizedException(`User: ${user.email} does not exists`);
+    }
+
+    await this.tenantService.isUserTenantValid(tenantId, userDTO.userId);
+
+    return await this.getAccessToken(user, tenantId);
   }
 }

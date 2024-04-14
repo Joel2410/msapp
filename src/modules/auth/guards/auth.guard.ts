@@ -9,7 +9,12 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { DEFAULT_TENANT, IS_PUBLIC_KEY, JWT_SECRET } from '@config';
+import {
+  DEFAULT_TENANT,
+  IS_PUBLIC_KEY,
+  IS_PUBLIC_TENANT_KEY,
+  JWT_SECRET,
+} from '@config';
 import { AccessTokenContent } from '../interfaces';
 import { TenantService } from '../../../modules/tenant/tenant.service';
 import { getTenantIdFromRequest } from '@helpers';
@@ -47,24 +52,14 @@ export class AuthGuard implements CanActivate {
         },
       );
 
-      //TODO: Crear guard para validar el tenant similar a IS PUBLIC
-      const tenantId = getTenantIdFromRequest(request);
+      const isPublicTenant = this.reflector.getAllAndOverride<boolean>(
+        IS_PUBLIC_TENANT_KEY,
+        [context.getHandler(), context.getClass()],
+      );
 
-      // Validar que el tenant exista y pertenezca al usuario
-      if (!this.tenantService.isUserTenantValid(tenantId, payload.userId)) {
-        const error = `User: ${payload.email} does not have the tenant: ${tenantId}`;
-        Logger.warn(error);
-        throw new UnauthorizedException(error);
-      }
-
-      // Si el token no tiene tenant asignar el tenant por defecto
-      if (!payload.tenantId) payload.tenantId = DEFAULT_TENANT;
-
-      // Validar que el tenant del token y el tenant del request sea el mismo
-      if (tenantId != payload.tenantId) {
-        const error = `Host tenant: ${tenantId}; user tenant: ${payload.tenantId}`;
-        Logger.warn(error);
-        throw new UnauthorizedException(error);
+      //Validar tenant
+      if (!isPublicTenant) {
+        this.validateTenant(request, payload);
       }
 
       request['user'] = payload;
@@ -82,5 +77,22 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+
+  private validateTenant(request: Request, payload: AccessTokenContent): void {
+    const tenantId = getTenantIdFromRequest(request);
+
+    // Validar que el tenant exista y pertenezca al usuario
+    this.tenantService.isUserTenantValid(tenantId, payload.userId);
+
+    // Si el token no tiene tenant asignar el tenant por defecto
+    if (!payload.tenantId) payload.tenantId = DEFAULT_TENANT;
+
+    // Validar que el tenant del token y el tenant del request sea el mismo
+    if (tenantId != payload.tenantId) {
+      const error = `Host tenant: ${tenantId}; user tenant: ${payload.tenantId}`;
+      Logger.warn(error);
+      throw new UnauthorizedException(error);
+    }
   }
 }
