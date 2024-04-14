@@ -11,7 +11,7 @@ export const databaseConfig: TypeOrmModuleAsyncOptions = {
   inject: [ConfigService],
   useFactory: (configService: ConfigService) => {
     DB_HOST = configService.get('DB_HOST');
-    DB_PORT = +configService.get('DB_PORT');
+    DB_PORT = configService.get<number>('DB_PORT');
     DB_USERNAME = configService.get('DB_USERNAME');
     DB_PASSWORD = configService.get('DB_PASSWORD');
 

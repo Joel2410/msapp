@@ -1,5 +1,5 @@
-import { DataSource, DataSourceOptions } from 'typeorm';
 import 'dotenv/config';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { DB_TYPE } from '../config/constants';
 
 const options: DataSourceOptions = {

@@ -1,15 +1,17 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+import { GLOBAL_PREFIX } from './config/constants';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const globalPrefix = 'api';
 
+  //TODO:
   //app.useGlobalFilters(new HttpExceptionFilter());
   //app.useGlobalInterceptors(new HttpResponseInterceptor());
+
   app.enableCors();
-  app.setGlobalPrefix(globalPrefix);
+  app.setGlobalPrefix(GLOBAL_PREFIX);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,9 +22,9 @@ async function bootstrap() {
     }),
   );
 
-  const port = +process.env.API_PORT | 3200;
+  const port = +process.env.API_PORT || 3200;
   await app.listen(port, () => {
-    Logger.log(`Listening at http://localhost:${port}/${globalPrefix}`);
+    Logger.log(`Listening at http://localhost:${port}/${GLOBAL_PREFIX}`);
   });
 }
 
