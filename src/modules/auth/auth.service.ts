@@ -35,14 +35,19 @@ export class AuthService {
    * with the `user` object and `tenantId` as parameters.
    */
   async signIn(signInDTO: SignInDTO, tenantId: string) {
-    const user = await this.userService.findOneByEmail(signInDTO.email);
-    if (!user)
+    const user = await this.userService.findOneByEmail(signInDTO.email, true);
+    if (!user) {
       throw new BadRequestException({ message: 'Invalid credentials' });
+    }
 
     try {
-      if (!(await argon2.verify(user.password, signInDTO.password)))
+      if (!(await argon2.verify(user.password, signInDTO.password))) {
         throw new BadRequestException({ message: 'Invalid credentials' });
+      }
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new InternalServerErrorException(error);
     }
 
