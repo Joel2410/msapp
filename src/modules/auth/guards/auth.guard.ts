@@ -52,8 +52,8 @@ export class AuthGuard implements CanActivate {
 
       // Validar que el tenant exista y pertenezca al usuario
       if (!this.tenantService.isUserTenantValid(tenantId, payload.userId)) {
-        const error = `Error: User: ${payload.userId} does not have the tenant: ${tenantId}`;
-        Logger.error(error);
+        const error = `User: ${payload.email} does not have the tenant: ${tenantId}`;
+        Logger.warn(error);
         throw new UnauthorizedException(error);
       }
 
@@ -62,8 +62,8 @@ export class AuthGuard implements CanActivate {
 
       // Validar que el tenant del token y el tenant del request sea el mismo
       if (tenantId != payload.tenantId) {
-        const error = `Error: host tenant: ${tenantId}; user tenant: ${payload.tenantId}`;
-        Logger.error(error);
+        const error = `Host tenant: ${tenantId}; user tenant: ${payload.tenantId}`;
+        Logger.warn(error);
         throw new UnauthorizedException(error);
       }
 
