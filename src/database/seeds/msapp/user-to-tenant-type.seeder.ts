@@ -1,6 +1,6 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { UserToTenantType } from '../entities/user-to-tenant-type.entity';
+import { UserToTenantType } from '@entities/msapp';
 
 export default class UserToTenantTypeSeeder implements Seeder {
   track = false;

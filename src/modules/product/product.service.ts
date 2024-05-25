@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Product } from 'src/database/entities';
+import { Product } from '@entities/system';
 import { TenantService } from '../tenant/tenant.service';
 
 @Injectable()

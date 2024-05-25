@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { SignUpDTO } from '../auth/dtos';
 import { getError } from 'src/helpers';
 import * as argon2 from 'argon2';
-import { User } from '@entities';
+import { User } from '@entities/msapp';
 
 @Injectable()
 export class UserService {

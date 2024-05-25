@@ -9,7 +9,7 @@ import { UserService } from '../user/user.service';
 import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { AccessToken, AccessTokenContent } from './interfaces';
-import { User } from '@entities';
+import { User } from '@entities/msapp';
 import { UserDTO } from '../user/dtos';
 import { TenantService } from '../tenant/tenant.service';
 

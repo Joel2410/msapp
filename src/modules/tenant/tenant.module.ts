@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TenantController } from './tenant.controller';
 import { TenantService } from './tenant.service';
-import { Tenant, UserToTenant } from 'src/database/entities';
+import { Tenant, UserToTenant } from '@entities/msapp';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({

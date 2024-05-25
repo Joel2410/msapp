@@ -7,7 +7,8 @@ import {
 } from '@nestjs/common';
 import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 import { ConnectionPool } from 'mssql';
-import { Product, Tenant, UserToTenant } from '@entities';
+import { Tenant, UserToTenant } from '@entities/msapp';
+import { Product } from '@entities/system';
 import {
   DB_HOST,
   DB_PASSWORD,

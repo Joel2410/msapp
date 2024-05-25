@@ -25,7 +25,7 @@
       "@interfaces": ["src/interfaces"],
       "@enums": ["src/enums"],
       "@decorators": ["src/decorators"],
-      "@entities": ["src/database/entities"]
+      "@entities/*": ["src/database/entities/*"]
     }
   }
 }
