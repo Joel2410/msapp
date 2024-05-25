@@ -52,7 +52,7 @@ export class DatabaseService {
   public async creatDatabase(tenantId: string): Promise<void> {
     try {
       await this.exec(`CREATE DATABASE ${tenantId}`);
-      await this.addDataSource(tenantId);
+      await this.addDataSource(tenantId, true);
     } catch (error) {
       throw new InternalServerErrorException(error);
     }
