@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Product } from '@entities/system';
-import { TenantService } from '../tenant/tenant.service';
+import { DatabaseService } from '@database/database.service';
 
 @Injectable()
 export class ProductService {
-  constructor(private tenantService: TenantService) {}
+  constructor(private databaseService: DatabaseService) {}
 
   public async getProducts(tenantId: string) {
-    const productRepository = this.tenantService.getRepository(
+    const productRepository = this.databaseService.getRepository(
       tenantId,
       Product,
     );

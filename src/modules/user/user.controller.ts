@@ -9,6 +9,6 @@ export class UserController {
 
   @Get('profile')
   getProfile(@CurrentUser() user: UserDTO) {
-    return this.userService.findOneById(user.userId, true);
+    return this.userService.findOneById(user.userId);
   }
 }

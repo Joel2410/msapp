@@ -8,9 +8,9 @@ import { CurrentUser } from '../../decorators';
 export class TenantController {
   constructor(private tenantService: TenantService) {}
 
-  @Get('get')
-  signIn() {
-    return this.tenantService.find();
+  @Get()
+  getAll(@CurrentUser() user: UserDTO) {
+    return this.tenantService.find(user);
   }
 
   @Post('create')

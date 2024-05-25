@@ -59,7 +59,7 @@ export class AuthGuard implements CanActivate {
 
       //Validar tenant
       if (!isPublicTenant) {
-        this.validateTenant(request, payload);
+        await this.validateTenant(request, payload);
       }
 
       request['user'] = payload;
@@ -79,11 +79,18 @@ export class AuthGuard implements CanActivate {
     return type === 'Bearer' ? token : undefined;
   }
 
-  private validateTenant(request: Request, payload: AccessTokenContent): void {
+  private async validateTenant(
+    request: Request,
+    payload: AccessTokenContent,
+  ): Promise<void> {
     const tenantId = getTenantIdFromRequest(request);
 
+    if (tenantId == DEFAULT_TENANT) {
+      return;
+    }
+
     // Validar que el tenant exista y pertenezca al usuario
-    this.tenantService.isUserTenantValid(tenantId, payload.userId);
+    await this.tenantService.isUserTenantValid(tenantId, payload.userId);
 
     // Si el token no tiene tenant asignar el tenant por defecto
     if (!payload.tenantId) payload.tenantId = DEFAULT_TENANT;

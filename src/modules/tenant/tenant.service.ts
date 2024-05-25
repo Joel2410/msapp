@@ -2,43 +2,38 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { DataSource, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
-import { ConnectionPool } from 'mssql';
-import { Tenant, UserToTenant } from '@entities/msapp';
-import { Product } from '@entities/system';
-import {
-  DB_HOST,
-  DB_PASSWORD,
-  DB_PORT,
-  DB_USERNAME,
-  DB_MASTER,
-  DB_TYPE,
-} from '@config';
+import { EntityManager, Repository } from 'typeorm';
+import { Tenant, User, UserToTenant, UserToTenantType } from '@entities/msapp';
+import { DatabaseService } from '@database/database.service';
+import { UserDTO } from '@modules/user/dtos';
+import { USER_TO_TENANT_TYPE } from '@enums';
 
 @Injectable()
 export class TenantService {
-  dataSources: DataSource[] = [];
-
+  //TODO: refactor form to get repositories or replace it for his services
   constructor(
     @InjectRepository(Tenant)
-    private tenantsRepository: Repository<Tenant>,
+    private readonly tenantsRepository: Repository<Tenant>,
     @InjectRepository(UserToTenant)
-    private userTotenantsRepository: Repository<UserToTenant>,
-  ) {
-    this.find()
-      .then((tenants) => {
-        tenants.forEach(async (tenant) => {
-          await this.addDataSource(tenant.id);
-        });
-      })
-      .catch((error) => new InternalServerErrorException(error));
-  }
+    private readonly userTotenantsRepository: Repository<UserToTenant>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(UserToTenantType)
+    private readonly userToTenantTypeRepository: Repository<UserToTenantType>,
+    private readonly databaseService: DatabaseService,
+  ) {}
 
-  find() {
-    return this.tenantsRepository.find();
+  find(user: UserDTO) {
+    return this.tenantsRepository
+      .createQueryBuilder('tenant')
+      .innerJoinAndSelect('tenant.userToTenants', 'userToTenant')
+      .innerJoinAndSelect('userToTenant.type', 'type')
+      .innerJoin('userToTenant.user', 'user', 'user.id = :userId', {
+        userId: user.userId,
+      })
+      .getMany();
   }
 
   findOneById(id: string) {
@@ -52,102 +47,41 @@ export class TenantService {
       throw new BadRequestException({ message: 'This tenant has been used' });
     }
 
+    const user = await this.userRepository.findOneBy({ id: userId });
+    if (!user) {
+      throw new BadRequestException({ message: 'Incorrect user' });
+    }
+
+    const userToTenantType = await this.userToTenantTypeRepository.findOneBy({
+      slug: USER_TO_TENANT_TYPE.OWNER,
+    });
+
     tenant = this.tenantsRepository.create({
       id: tenantId,
       isActive: true,
     });
 
     let userToTenant = this.userTotenantsRepository.create({
-      tenantId,
-      userId,
+      tenant,
+      user,
+      type: userToTenantType,
     });
 
     try {
-      tenant = await this.tenantsRepository.save(tenant);
-      userToTenant = await this.userTotenantsRepository.save(userToTenant);
+      await this.tenantsRepository.manager.transaction(
+        async (transactionalEntityManager: EntityManager) => {
+          tenant = await transactionalEntityManager.save(tenant);
+          userToTenant = await transactionalEntityManager.save(userToTenant);
+
+          await this.databaseService.creatDatabase(tenant.id);
+        },
+      );
     } catch (error) {
-      //TODO manejar mensajes de errores
+      //TODO: manejar mensajes de errores
       throw error;
     }
 
-    try {
-      const pool = new ConnectionPool({
-        server: DB_HOST,
-        port: DB_PORT,
-        user: DB_USERNAME,
-        password: DB_PASSWORD,
-        database: DB_MASTER,
-        options: { trustServerCertificate: true },
-      });
-
-      await pool.connect();
-      await pool.query(`CREATE DATABASE ${tenantId}`);
-      await pool.close();
-
-      await this.addDataSource(tenantId);
-    } catch (error) {
-      throw new InternalServerErrorException(error);
-    }
-
     return tenant;
-  }
-
-  async addDataSource(tenantId: string) {
-    const appDataSource = new DataSource({
-      name: tenantId,
-      type: DB_TYPE,
-      host: DB_HOST,
-      port: DB_PORT,
-      username: DB_USERNAME,
-      password: DB_PASSWORD,
-      database: tenantId,
-      entities: [Product],
-      synchronize: true,
-      options: { trustServerCertificate: true },
-    });
-
-    this.dataSources.push(await appDataSource.initialize());
-  }
-
-  findDataSource(tenantId: string) {
-    const dataSource = this.dataSources.find(
-      (dataSource) =>
-        (dataSource.options.database as string).toLowerCase() ===
-        tenantId.toLowerCase(),
-    );
-
-    if (!dataSource?.isInitialized) {
-      throw new BadRequestException({
-        message: `Tenant: ${tenantId} is not available`,
-      });
-    }
-
-    return dataSource;
-  }
-
-  getRepository(tenantId: string, model: EntityTarget<ObjectLiteral>) {
-    const dataSource = this.findDataSource(tenantId);
-    return dataSource.getRepository(model);
-  }
-
-  async shutDown() {
-    this.dataSources.forEach(async (dataSource) => {
-      await dataSource.destroy();
-    });
-  }
-
-  async removeDataSource(name: string) {
-    let index = -1;
-    const dataSource = this.dataSources.find((dataSource, i) => {
-      index = i;
-      return (
-        (dataSource.options.database as string).toLowerCase() ===
-        name.toLowerCase()
-      );
-    });
-
-    await dataSource.destroy();
-    this.dataSources.splice(index, 1);
   }
 
   async isUserTenantValid(tenantId: string, userId: number): Promise<void> {
