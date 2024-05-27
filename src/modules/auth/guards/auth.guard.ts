@@ -41,7 +41,10 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException({
+        show: true,
+        message: 'Invalid token',
+      });
     }
 
     try {
@@ -67,7 +70,8 @@ export class AuthGuard implements CanActivate {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-
+      
+      Logger.error(error);
       throw new InternalServerErrorException();
     }
 
@@ -97,9 +101,14 @@ export class AuthGuard implements CanActivate {
 
     // Validar que el tenant del token y el tenant del request sea el mismo
     if (tenantId != payload.tenantId) {
-      const error = `Host tenant: ${tenantId}; user tenant: ${payload.tenantId}`;
-      Logger.warn(error);
-      throw new UnauthorizedException(error);
+      const message = `Tenants does not match. Host tenant: ${tenantId}, user tenant: ${payload.tenantId}`;
+
+      Logger.warn(message);
+
+      throw new UnauthorizedException({
+        show: true,
+        message,
+      });
     }
   }
 }

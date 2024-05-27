@@ -10,7 +10,10 @@ const options: DataSourceOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [__dirname + process.env.DB_ENTITIES_PATH],
+  entities: [
+    __dirname + process.env.DB_MSAPP_ENTIIES_PATH,
+    __dirname + process.env.DB_SYSTEM_ENTIIES_PATH,
+  ],
   options: { trustServerCertificate: true },
   synchronize: process.env.DB_SYNCHRONIZE === 'true',
 };

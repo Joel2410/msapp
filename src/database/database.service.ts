@@ -1,4 +1,4 @@
-import { DataSource, EntityTarget } from 'typeorm';
+import { DataSource, EntityTarget, QueryRunner } from 'typeorm';
 import {
   BadRequestException,
   Injectable,
@@ -19,6 +19,10 @@ import { dataSource } from './data-source';
 @Injectable()
 export class DatabaseService {
   private dataSources: DataSource[] = [];
+
+  public get dataSource() {
+    return dataSource;
+  }
 
   constructor() {
     dataSource
@@ -45,16 +49,18 @@ export class DatabaseService {
     try {
       return await dataSource.query<T>(query);
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      Logger.error(error);
+      throw new InternalServerErrorException();
     }
   }
 
-  public async creatDatabase(tenantId: string): Promise<void> {
+  public async createDatabase(tenantId: string): Promise<void> {
     try {
       await this.exec(`CREATE DATABASE ${tenantId}`);
       await this.addDataSource(tenantId, true);
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      Logger.error(error);
+      throw new InternalServerErrorException();
     }
   }
 
@@ -84,6 +90,7 @@ export class DatabaseService {
 
     if (!dataSource?.isInitialized) {
       throw new BadRequestException({
+        show: true,
         message: `Tenant: ${tenantId} is not available`,
       });
     }

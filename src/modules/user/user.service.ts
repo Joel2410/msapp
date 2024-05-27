@@ -2,11 +2,12 @@ import {
   BadRequestException,
   InternalServerErrorException,
   Injectable,
+  ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpDTO } from '../auth/dtos';
-import { getError } from 'src/helpers';
 import * as argon2 from 'argon2';
 import { User } from '@entities/msapp';
 
@@ -50,17 +51,21 @@ export class UserService {
     try {
       signUpDTO.password = await argon2.hash(signUpDTO.password);
     } catch (error) {
-      throw new InternalServerErrorException(getError(error));
+      Logger.error(error);
+      throw new InternalServerErrorException();
     }
 
     let user = this.usersRepository.create({ ...signUpDTO });
 
     try {
       user = await this.usersRepository.save(user);
-    } catch (error: any) {
-      throw new BadRequestException(
-        getError(error, [{ error: 2627, message: 'This email has been used' }]),
-      );
+    } catch (error) {
+      if (error as typeof ConflictException) {
+        throw new ConflictException({
+          show: true,
+          message: 'This email has been used',
+        });
+      }
     }
 
     user = this.removeSecretProperties(user);

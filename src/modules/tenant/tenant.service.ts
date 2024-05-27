@@ -2,6 +2,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
@@ -44,12 +47,18 @@ export class TenantService {
     let tenant = await this.findOneById(tenantId);
 
     if (tenant) {
-      throw new BadRequestException({ message: 'This tenant has been used' });
+      throw new BadRequestException({
+        show: true,
+        message: 'This tenant has been used',
+      });
     }
 
     const user = await this.userRepository.findOneBy({ id: userId });
     if (!user) {
-      throw new BadRequestException({ message: 'Incorrect user' });
+      throw new NotFoundException({
+        show: true,
+        message: `User not found with id: ${userId}`,
+      });
     }
 
     const userToTenantType = await this.userToTenantTypeRepository.findOneBy({
@@ -73,12 +82,12 @@ export class TenantService {
           tenant = await transactionalEntityManager.save(tenant);
           userToTenant = await transactionalEntityManager.save(userToTenant);
 
-          await this.databaseService.creatDatabase(tenant.id);
+          await this.databaseService.createDatabase(tenant.id);
         },
       );
     } catch (error) {
-      //TODO: manejar mensajes de errores
-      throw error;
+      Logger.error(error);
+      throw new InternalServerErrorException();
     }
 
     return tenant;
@@ -88,7 +97,10 @@ export class TenantService {
     const tenant = await this.findOneById(tenantId);
 
     if (!tenant) {
-      throw new UnauthorizedException(`Tenant: ${tenantId} does not exists`);
+      throw new UnauthorizedException({
+        show: true,
+        message: `Tenant: ${tenantId} does not exists`,
+      });
     }
 
     const userToTenant = await this.userTotenantsRepository.findOneBy({
@@ -97,9 +109,10 @@ export class TenantService {
     });
 
     if (!userToTenant) {
-      throw new UnauthorizedException(
-        `User: ${userId} does not have the tenant: ${tenantId}`,
-      );
+      throw new UnauthorizedException({
+        show: true,
+        message: `User: ${userId} does not have the tenant: ${tenantId}`,
+      });
     }
   }
 }

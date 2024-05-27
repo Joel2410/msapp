@@ -2,6 +2,8 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { SignInDTO, SignUpDTO } from './dtos';
@@ -37,18 +39,25 @@ export class AuthService {
   async signIn(signInDTO: SignInDTO, tenantId: string) {
     const user = await this.userService.findOneByEmail(signInDTO.email, true);
     if (!user) {
-      throw new BadRequestException({ message: 'Invalid credentials' });
+      throw new BadRequestException({
+        show: true,
+        message: 'Invalid credentials',
+      });
     }
 
     try {
       if (!(await argon2.verify(user.password, signInDTO.password))) {
-        throw new BadRequestException({ message: 'Invalid credentials' });
+        throw new BadRequestException({
+          show: true,
+          message: 'Invalid credentials',
+        });
       }
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new InternalServerErrorException(error);
+      Logger.error(error);
+      throw new InternalServerErrorException();
     }
 
     return await this.getAccessToken(user, tenantId);
@@ -103,7 +112,10 @@ export class AuthService {
   async switchTenant(userDTO: UserDTO, tenantId: string): Promise<AccessToken> {
     const user = await this.userService.findOneById(userDTO.userId);
     if (!user) {
-      throw new UnauthorizedException(`User: ${user.email} does not exists`);
+      throw new NotFoundException({
+        show: true,
+        message: `User: ${user.email} does not exists`,
+      });
     }
 
     await this.tenantService.isUserTenantValid(tenantId, userDTO.userId);
