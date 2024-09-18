@@ -1,4 +1,4 @@
-export enum USER_TO_TENANT_TYPE {
+export enum USER_COMPANY_ROLE {
   OWNER = 'OWNER',
   ADMIN = 'ADMIN',
   MEMBER = 'MEMBER',

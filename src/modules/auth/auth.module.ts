@@ -7,12 +7,12 @@ import { UserModule } from '../user/user.module';
 import { JWT_EXPIRES_IN, JWT_SECRET, loadConfig } from 'src/config';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from './guards/auth.guard';
-import { TenantModule } from '../tenant/tenant.module';
+import { CompanyModule } from '../company/company.module';
 
 @Module({
   imports: [
     UserModule,
-    TenantModule,
+    CompanyModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

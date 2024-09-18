@@ -1,20 +1,18 @@
 import { Seeder } from 'typeorm-extension';
 import { DataSource } from 'typeorm';
-import { UserToTenantType } from '@entities/msapp';
+import { UserCompanyRole } from '../../entities/msapp/user-company-role.entity';
 
-export default class UserToTenantTypeSeeder implements Seeder {
+export default class UserCompanyRoleSeeder implements Seeder {
   track = false;
 
   public async run(dataSource: DataSource): Promise<any> {
-    const repository = dataSource.getRepository(UserToTenantType);
+    const repository = dataSource.getRepository(UserCompanyRole);
 
     // Truncar la tabla antes de insertar nuevos registros
-    await repository.query(`DELETE FROM user_to_tenant_type;`);
+    await repository.query(`DELETE FROM user_company_role;`);
 
     // Reiniciar el contador del identity
-    await repository.query(
-      `DBCC CHECKIDENT ('user_to_tenant_type', RESEED, 0);`,
-    );
+    await repository.query(`DBCC CHECKIDENT ('user_company_role', RESEED, 0);`);
 
     // Insertar registros
     await repository.insert([

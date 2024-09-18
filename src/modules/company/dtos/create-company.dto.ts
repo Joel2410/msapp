@@ -1,7 +1,7 @@
 import { MinLength, MaxLength } from 'class-validator';
 
-export class CreateTenantDTO {
+export class CreateCompanyDTO {
   @MinLength(4)
   @MaxLength(16)
-  tenantId: string;
+  tenant: string;
 }

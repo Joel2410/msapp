@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class SwitchTenantDTO {
+export class SwitchCompanyDTO {
   @IsNotEmpty()
-  tenantId: string;
+  tenant: string;
 }

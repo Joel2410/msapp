@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class UserToTenantType {
+export class UserCompanyRole {
   @PrimaryGeneratedColumn()
   id: string;
 

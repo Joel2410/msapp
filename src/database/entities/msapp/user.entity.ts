@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { UserToTenant } from './user-to-tenant.entity';
+import { UserCompany } from './user-company.entity';
 
 @Entity()
 export class User {
@@ -21,6 +21,6 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
-  @OneToMany(() => UserToTenant, (userToTenant) => userToTenant.user)
-  userToTenants: UserToTenant[];
+  @OneToMany(() => UserCompany, (userCompany) => userCompany.user)
+  companies: UserCompany[];
 }

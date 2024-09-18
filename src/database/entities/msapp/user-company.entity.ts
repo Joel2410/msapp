@@ -1,16 +1,16 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { UserToTenantType } from './user-to-tenant-type.entity';
+import { UserCompanyRole } from './user-company-role.entity';
+import { Company } from './company.entity';
 import { User } from './user.entity';
-import { Tenant } from './tenant.entity';
 
 @Entity()
-export class UserToTenant {
+export class UserCompany {
   @PrimaryGeneratedColumn()
   id: number;
 
   userId: number;
-  tenantId: string;
-  typeId: number;
+  companyId: number;
+  roleId: number;
 
   @Column({ default: true })
   isActive: boolean;
@@ -18,9 +18,9 @@ export class UserToTenant {
   @ManyToOne(() => User)
   user: User;
 
-  @ManyToOne(() => Tenant)
-  tenant: Tenant;
+  @ManyToOne(() => Company)
+  company: Company;
 
-  @ManyToOne(() => UserToTenantType)
-  type: UserToTenantType;
+  @ManyToOne(() => UserCompanyRole)
+  role: UserCompanyRole;
 }

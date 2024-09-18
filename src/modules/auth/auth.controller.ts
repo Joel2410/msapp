@@ -7,13 +7,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignInDTO, SignUpDTO, SwitchTenantDTO } from './dtos';
-import {
-  CurrentTenantId,
-  CurrentUser,
-  Public,
-  PublicTenant,
-} from '@decorators';
+import { SignInDTO, SignUpDTO, SwitchCompanyDTO } from './dtos';
+import { CurrentTenant, CurrentUser, Public, PublicTenant } from '@decorators';
 import { UserDTO } from '../user/dtos';
 
 @Controller('auth')
@@ -23,22 +18,22 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('signIn')
-  signIn(@Body() signInDTO: SignInDTO, @CurrentTenantId() tenantId: string) {
-    return this.authService.signIn(signInDTO, tenantId);
+  signIn(@Body() signInDTO: SignInDTO, @CurrentTenant() tenant: string) {
+    return this.authService.signIn(signInDTO, tenant);
   }
 
   @Public()
   @Post('signUp')
-  signUp(@Body() signUpDTO: SignUpDTO, @CurrentTenantId() tenantId: string) {
-    return this.authService.signUp(signUpDTO, tenantId);
+  signUp(@Body() signUpDTO: SignUpDTO, @CurrentTenant() tenant: string) {
+    return this.authService.signUp(signUpDTO, tenant);
   }
 
   @PublicTenant()
   @Put('switchTenant')
   switchTenant(
     @CurrentUser() userDTO: UserDTO,
-    @Body() switchTenantDTO: SwitchTenantDTO,
+    @Body() switchCompanyDTO: SwitchCompanyDTO,
   ) {
-    return this.authService.switchTenant(userDTO, switchTenantDTO.tenantId);
+    return this.authService.switchTenant(userDTO, switchCompanyDTO.tenant);
   }
 }

@@ -1,4 +1,4 @@
-import { DataSource, EntityTarget, QueryRunner } from 'typeorm';
+import { DataSource, EntityTarget } from 'typeorm';
 import {
   BadRequestException,
   Injectable,
@@ -13,7 +13,7 @@ import {
   DB_TYPE,
   DB_SYSTEM_ENTIIES_PATH,
 } from '@config';
-import { Tenant } from '@entities/msapp';
+import { Company } from '@entities/msapp';
 import { dataSource } from './data-source';
 
 @Injectable()
@@ -28,14 +28,14 @@ export class DatabaseService {
     dataSource
       .initialize()
       .then(async () => {
-        const tenants = await this.exec<Tenant[]>(`select * from tenant`);
+        const companies = await this.exec<Company[]>(`select * from company`);
 
-        if (!tenants?.length) {
+        if (!companies?.length) {
           Logger.warn('No databases found');
         }
 
-        for (const tenant of tenants) {
-          await this.addDataSource(tenant.id);
+        for (const company of companies) {
+          await this.addDataSource(company.tenant);
         }
 
         Logger.log('Database service inicializated');
@@ -54,25 +54,25 @@ export class DatabaseService {
     }
   }
 
-  public async createDatabase(tenantId: string): Promise<void> {
+  public async createDatabase(tenant: string): Promise<void> {
     try {
-      await this.exec(`CREATE DATABASE ${tenantId}`);
-      await this.addDataSource(tenantId, true);
+      await this.exec(`CREATE DATABASE ${tenant}`);
+      await this.addDataSource(tenant, true);
     } catch (error) {
       Logger.error(error);
       throw new InternalServerErrorException();
     }
   }
 
-  public async addDataSource(tenantId: string, synchronize?: boolean) {
+  public async addDataSource(tenant: string, synchronize?: boolean) {
     const appDataSource = new DataSource({
-      name: tenantId,
+      name: tenant,
       type: DB_TYPE,
       host: DB_HOST,
       port: DB_PORT,
       username: DB_USERNAME,
       password: DB_PASSWORD,
-      database: tenantId,
+      database: tenant,
       entities: [DB_SYSTEM_ENTIIES_PATH],
       options: { trustServerCertificate: true },
       synchronize,
@@ -81,25 +81,25 @@ export class DatabaseService {
     this.dataSources.push(await appDataSource.initialize());
   }
 
-  public findDataSource(tenantId: string) {
+  public findDataSource(tenant: string) {
     const dataSource = this.dataSources.find(
       (dataSource) =>
         (dataSource.options.database as string).toLowerCase() ===
-        tenantId.toLowerCase(),
+        tenant.toLowerCase(),
     );
 
     if (!dataSource?.isInitialized) {
       throw new BadRequestException({
         show: true,
-        message: `Tenant: ${tenantId} is not available`,
+        message: `Tenant: ${tenant} is not available`,
       });
     }
 
     return dataSource;
   }
 
-  public getRepository<T>(tenantId: string, model: EntityTarget<T>) {
-    const dataSource = this.findDataSource(tenantId);
+  public getRepository<T>(tenant: string, model: EntityTarget<T>) {
+    const dataSource = this.findDataSource(tenant);
     return dataSource.getRepository(model);
   }
 

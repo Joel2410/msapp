@@ -1,9 +1,9 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { getTenantIdFromRequest } from '@helpers';
+import { getTenantFromRequest } from '@helpers';
 
-export const CurrentTenantId = createParamDecorator(
+export const CurrentTenant = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext): string => {
     const request = ctx.switchToHttp().getRequest();
-    return getTenantIdFromRequest(request);
+    return getTenantFromRequest(request);
   },
 );

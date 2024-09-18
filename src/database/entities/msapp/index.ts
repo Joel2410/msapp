@@ -1,4 +1,4 @@
 export * from './user.entity';
-export * from './tenant.entity';
-export * from './user-to-tenant.entity';
-export * from './user-to-tenant-type.entity';
+export * from './company.entity';
+export * from './user-company.entity';
+export * from './user-company-role.entity';

@@ -1,1 +1,1 @@
-export * from './user-to-tenant-type.seeder';
+export * from './user-company-role.seeder';

@@ -16,15 +16,15 @@ import {
   JWT_SECRET,
 } from '@config';
 import { AccessTokenContent } from '../interfaces';
-import { TenantService } from '../../../modules/tenant/tenant.service';
-import { getTenantIdFromRequest } from '@helpers';
+import { CompanyService } from '../../company/company.service';
+import { getTenantFromRequest } from '@helpers';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
-    private tenantService: TenantService,
+    private companyService: CompanyService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -70,7 +70,7 @@ export class AuthGuard implements CanActivate {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      
+
       Logger.error(error);
       throw new InternalServerErrorException();
     }
@@ -87,21 +87,23 @@ export class AuthGuard implements CanActivate {
     request: Request,
     payload: AccessTokenContent,
   ): Promise<void> {
-    const tenantId = getTenantIdFromRequest(request);
+    const tenant = getTenantFromRequest(request);
 
-    if (tenantId == DEFAULT_TENANT) {
+    if (tenant == DEFAULT_TENANT) {
       return;
     }
 
     // Validar que el tenant exista y pertenezca al usuario
-    await this.tenantService.isUserTenantValid(tenantId, payload.userId);
+    await this.companyService.isUserCompanyValid(tenant, payload.userId);
 
     // Si el token no tiene tenant asignar el tenant por defecto
-    if (!payload.tenantId) payload.tenantId = DEFAULT_TENANT;
+    if (!payload.tenant) {
+      payload.tenant = DEFAULT_TENANT;
+    }
 
     // Validar que el tenant del token y el tenant del request sea el mismo
-    if (tenantId != payload.tenantId) {
-      const message = `Tenants does not match. Host tenant: ${tenantId}, user tenant: ${payload.tenantId}`;
+    if (tenant != payload.tenant) {
+      const message = `Tenants does not match. Host tenant: ${tenant}, user tenant: ${payload.tenant}`;
 
       Logger.warn(message);
 

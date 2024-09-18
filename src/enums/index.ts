@@ -1,1 +1,1 @@
-export * from './user-to-tenant-type.enum';
+export * from './user-company-role.enum';

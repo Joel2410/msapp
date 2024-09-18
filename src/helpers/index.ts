@@ -1,1 +1,1 @@
-export * from './get-tenant-id.helper';
+export * from './get-tenant.helper';

@@ -6,9 +6,9 @@ import { DatabaseService } from '@database/database.service';
 export class ProductService {
   constructor(private databaseService: DatabaseService) {}
 
-  public async getProducts(tenantId: string) {
+  public async getProducts(tenant: string) {
     const productRepository = this.databaseService.getRepository(
-      tenantId,
+      tenant,
       Product,
     );
 

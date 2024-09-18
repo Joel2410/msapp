@@ -4,7 +4,6 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { SignInDTO, SignUpDTO } from './dtos';
 import { UserService } from '../user/user.service';
@@ -13,14 +12,14 @@ import { JwtService } from '@nestjs/jwt';
 import { AccessToken, AccessTokenContent } from './interfaces';
 import { User } from '@entities/msapp';
 import { UserDTO } from '../user/dtos';
-import { TenantService } from '../tenant/tenant.service';
+import { CompanyService } from '../company/company.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private tenantService: TenantService,
+    private companyService: CompanyService,
   ) {}
 
   /**
@@ -29,14 +28,14 @@ export class AuthService {
    * @param {SignInDTO} signInDTO - The `signInDTO` parameter in the `signIn` function likely
    * represents an object containing the user's sign-in data, such as their email and password. It
    * could have properties like `email` and `password`.
-   * @param {string} tenantId - The `tenantId` parameter in the `signIn` function is a string that
+   * @param {string} tenant - The `tenant` parameter in the `signIn` function is a string that
    * represents the identifier of the tenant for which the user is signing in. This parameter is used
    * to determine the context or scope of the user's authentication and authorization within a
    * multi-tenant application. It helps in ensuring that the
    * @returns The `signIn` function is returning the result of calling the `getAccessToken` function
-   * with the `user` object and `tenantId` as parameters.
+   * with the `user` object and `tenant` as parameters.
    */
-  async signIn(signInDTO: SignInDTO, tenantId: string) {
+  async signIn(signInDTO: SignInDTO, tenant: string) {
     const user = await this.userService.findOneByEmail(signInDTO.email, true);
     if (!user) {
       throw new BadRequestException({
@@ -60,7 +59,7 @@ export class AuthService {
       throw new InternalServerErrorException();
     }
 
-    return await this.getAccessToken(user, tenantId);
+    return await this.getAccessToken(user, tenant);
   }
 
   /**
@@ -69,15 +68,15 @@ export class AuthService {
    * @param {SignUpDTO} signUpDTO - The `signUpDTO` parameter likely contains the data needed to create
    * a new user account, such as the user's email, password, and any other relevant information
    * required for signing up.
-   * @param {string} tenantId - The `tenantId` parameter typically represents the identifier of the
+   * @param {string} tenant - The `tenant` parameter typically represents the identifier of the
    * tenant or organization to which the user belongs. It is used to associate the user with a specific
    * tenant or organization within a multi-tenant application or system.
-   * @returns The `getAccessToken` function is being called with the `user` object and `tenantId` as
+   * @returns The `getAccessToken` function is being called with the `user` object and `tenant` as
    * parameters, and the result of this function call is being returned.
    */
-  async signUp(signUpDTO: SignUpDTO, tenantId: string) {
+  async signUp(signUpDTO: SignUpDTO, tenant: string) {
     const user = await this.userService.createOne(signUpDTO);
-    return await this.getAccessToken(user, tenantId);
+    return await this.getAccessToken(user, tenant);
   }
 
   /**
@@ -85,17 +84,17 @@ export class AuthService {
    * tenant.
    * @param {User} user - The `user` parameter is an object that contains information about the user,
    * such as their `id` and `email`.
-   * @param {string} tenantId - The `tenantId` parameter in the `getAccessToken` function is a string
+   * @param {string} tenant - The `tenant` parameter in the `getAccessToken` function is a string
    * that represents the identifier of the tenant for which the access token is being generated. It is
    * used to associate the access token with a specific tenant within the system.
    * @returns An object containing an `accessToken` property, which is the result of signing the
    * `payload` using the `jwtService`.
    */
-  async getAccessToken(user: User, tenantId: string): Promise<AccessToken> {
+  async getAccessToken(user: User, tenant: string): Promise<AccessToken> {
     const payload: AccessTokenContent = {
       userId: user.id,
       email: user.email,
-      tenantId,
+      tenant,
     };
     return {
       accessToken: await this.jwtService.signAsync(payload),
@@ -105,11 +104,11 @@ export class AuthService {
   /**
    * The `switchTenant` function switches the tenant for a user and returns an access token.
    * @param {UserDTO} userDTO - UserDTO object containing user information, such as userId and email
-   * @param {string} tenantId - The `tenantId` parameter is a string that represents the unique
+   * @param {string} tenant - The `tenant` parameter is a string that represents the unique
    * identifier of the tenant for which the user is switching to.
    * @returns The `switchTenant` function returns a Promise that resolves to an `AccessToken`.
    */
-  async switchTenant(userDTO: UserDTO, tenantId: string): Promise<AccessToken> {
+  async switchTenant(userDTO: UserDTO, tenant: string): Promise<AccessToken> {
     const user = await this.userService.findOneById(userDTO.userId);
     if (!user) {
       throw new NotFoundException({
@@ -118,8 +117,8 @@ export class AuthService {
       });
     }
 
-    await this.tenantService.isUserTenantValid(tenantId, userDTO.userId);
+    await this.companyService.isUserCompanyValid(tenant, userDTO.userId);
 
-    return await this.getAccessToken(user, tenantId);
+    return await this.getAccessToken(user, tenant);
   }
 }
