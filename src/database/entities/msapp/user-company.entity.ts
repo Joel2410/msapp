@@ -8,8 +8,13 @@ export class UserCompany {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
   userId: number;
+
+  @Column()
   companyId: number;
+
+  @Column()
   roleId: number;
 
   @Column({ default: true })
