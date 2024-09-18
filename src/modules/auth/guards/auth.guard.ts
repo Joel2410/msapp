@@ -105,8 +105,6 @@ export class AuthGuard implements CanActivate {
     if (tenant != payload.tenant) {
       const message = `Tenants does not match. Host tenant: ${tenant}, user tenant: ${payload.tenant}`;
 
-      Logger.warn(message);
-
       throw new UnauthorizedException({
         show: true,
         message,
