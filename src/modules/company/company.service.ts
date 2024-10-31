@@ -1,3 +1,4 @@
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   BadRequestException,
@@ -7,7 +8,6 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { EntityManager, Repository } from 'typeorm';
 import { Company, User, UserCompany, UserCompanyRole } from '@entities/msapp';
 import { DatabaseService } from '@database/database.service';
 import { UserDTO } from '@modules/user/dtos';
@@ -86,7 +86,10 @@ export class CompanyService {
             }),
           );
 
-          await this.databaseService.createDatabase(company.tenant);
+          await this.databaseService.createDatabase(
+            company.tenant,
+            transactionalEntityManager,
+          );
         },
       );
 

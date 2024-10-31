@@ -1,10 +1,10 @@
 import {
   CanActivate,
   ExecutionContext,
-  Injectable,
   UnauthorizedException,
   Logger,
   InternalServerErrorException,
+  Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';

@@ -1,49 +1,33 @@
+import * as argon2 from 'argon2';
 import {
-  BadRequestException,
   InternalServerErrorException,
   Injectable,
   ConflictException,
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { SignUpDTO } from '../auth/dtos';
-import * as argon2 from 'argon2';
-import { User } from '@entities/msapp';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    @InjectRepository(UserRepository)
+    private usersRepository: UserRepository,
   ) {}
 
-  async findAll(showSecrets?: boolean) {
-    const users = await this.usersRepository.find();
-    if (!showSecrets) {
-      return users.map((user) => this.removeSecretProperties(user));
-    }
+  async findAll() {
+    const users = await this.usersRepository.findAll();
     return users;
   }
 
-  async findOneById(id: number, showSecrets?: boolean) {
-    let user = await this.usersRepository.findOneBy({ id });
-    if (!showSecrets) {
-      user = this.removeSecretProperties(user);
-    }
+  async findOneById(id: number) {
+    const user = await this.usersRepository.findOneBy({ id });
     return user;
   }
 
-  async findOneByEmail(email: string, showSecrets?: boolean) {
-    let user = await this.usersRepository.findOneBy({ email });
-    if (!showSecrets) {
-      user = this.removeSecretProperties(user);
-    }
-    return user;
-  }
-
-  removeSecretProperties(user: User): User {
-    delete user.password;
+  async findOneByEmail(email: string) {
+    const user = await this.usersRepository.findOneBy({ email });
     return user;
   }
 
@@ -67,8 +51,6 @@ export class UserService {
         });
       }
     }
-
-    user = this.removeSecretProperties(user);
 
     return user;
   }

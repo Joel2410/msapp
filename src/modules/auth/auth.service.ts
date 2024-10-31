@@ -1,3 +1,5 @@
+import * as argon2 from 'argon2';
+import { JwtService } from '@nestjs/jwt';
 import {
   BadRequestException,
   Injectable,
@@ -5,14 +7,12 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { SignInDTO, SignUpDTO } from './dtos';
-import { UserService } from '../user/user.service';
-import * as argon2 from 'argon2';
-import { JwtService } from '@nestjs/jwt';
-import { AccessToken, AccessTokenContent } from './interfaces';
 import { User } from '@entities/msapp';
-import { UserDTO } from '../user/dtos';
+import { AccessToken, AccessTokenContent } from './interfaces';
 import { CompanyService } from '../company/company.service';
+import { UserService } from '../user/user.service';
+import { SignInDTO, SignUpDTO } from './dtos';
+import { UserDTO } from '../user/dtos';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +36,7 @@ export class AuthService {
    * with the `user` object and `tenant` as parameters.
    */
   async signIn(signInDTO: SignInDTO, tenant: string) {
-    const user = await this.userService.findOneByEmail(signInDTO.email, true);
+    const user = await this.userService.findOneByEmail(signInDTO.email);
     if (!user) {
       throw new BadRequestException({
         show: true,

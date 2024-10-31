@@ -1,4 +1,4 @@
-import { DataSource, EntityTarget } from 'typeorm';
+import { DataSource, EntityManager, EntityTarget } from 'typeorm';
 import {
   BadRequestException,
   Injectable,
@@ -54,9 +54,12 @@ export class DatabaseService {
     }
   }
 
-  public async createDatabase(tenant: string): Promise<void> {
+  public async createDatabase(
+    tenant: string,
+    transactionalEntityManager: EntityManager,
+  ): Promise<void> {
     try {
-      await this.exec(`CREATE DATABASE ${tenant}`);
+      await transactionalEntityManager.query(`CREATE DATABASE ${tenant}`);
       await this.addDataSource(tenant, true);
     } catch (error) {
       Logger.error(error);
@@ -121,5 +124,11 @@ export class DatabaseService {
 
     await dataSource.destroy();
     this.dataSources.splice(index, 1);
+  }
+
+  public runMigrations(): void {
+    this.dataSources?.forEach((dataSource) => {
+      dataSource.runMigrations();
+    });
   }
 }
