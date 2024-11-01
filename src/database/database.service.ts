@@ -1,4 +1,4 @@
-import { DataSource, EntityManager, EntityTarget } from 'typeorm';
+import { DataSource, EntityTarget } from 'typeorm';
 import {
   BadRequestException,
   Injectable,
@@ -14,18 +14,14 @@ import {
   DB_SYSTEM_ENTIIES_PATH,
 } from '@config';
 import { Company } from '@entities/msapp';
-import { dataSource } from './data-source';
+import { dataSource as defaultDataSource } from './data-source';
 
 @Injectable()
 export class DatabaseService {
   private dataSources: DataSource[] = [];
 
-  public get dataSource() {
-    return dataSource;
-  }
-
   constructor() {
-    dataSource
+    defaultDataSource
       .initialize()
       .then(async () => {
         const companies = await this.exec<Company[]>(`select * from company`);
@@ -47,19 +43,16 @@ export class DatabaseService {
 
   public async exec<T>(query: string): Promise<T> {
     try {
-      return await dataSource.query<T>(query);
+      return await defaultDataSource.query<T>(query);
     } catch (error) {
       Logger.error(error);
       throw new InternalServerErrorException();
     }
   }
 
-  public async createDatabase(
-    tenant: string,
-    transactionalEntityManager: EntityManager,
-  ): Promise<void> {
+  public async createDatabase(tenant: string): Promise<void> {
     try {
-      await transactionalEntityManager.query(`CREATE DATABASE ${tenant}`);
+      await this.exec(`CREATE DATABASE ${tenant}`);
       await this.addDataSource(tenant, true);
     } catch (error) {
       Logger.error(error);
@@ -101,9 +94,9 @@ export class DatabaseService {
     return dataSource;
   }
 
-  public getRepository<T>(tenant: string, model: EntityTarget<T>) {
+  public getRepository<T>(tenant: string, entity: EntityTarget<T>) {
     const dataSource = this.findDataSource(tenant);
-    return dataSource.getRepository(model);
+    return dataSource.getRepository(entity);
   }
 
   public async shutDown() {

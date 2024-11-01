@@ -86,10 +86,7 @@ export class CompanyService {
             }),
           );
 
-          await this.databaseService.createDatabase(
-            company.tenant,
-            transactionalEntityManager,
-          );
+          await this.databaseService.createDatabase(company.tenant);
         },
       );
 
